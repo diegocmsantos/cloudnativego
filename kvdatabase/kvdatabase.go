@@ -2,6 +2,7 @@ package kvdatabase
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 )
 
@@ -16,6 +17,11 @@ const (
 type TransactionLogger interface {
 	WriteDelete(key string)
 	WritePut(key, value string)
+	Err() <-chan error
+
+	ReadEvents() (<-chan Event, <-chan error)
+
+	Run()
 }
 
 type Event struct {
@@ -57,4 +63,35 @@ func Delete(key string) error {
 	defer store.Unlock()
 
 	return nil
+}
+
+var logger TransactionLogger
+
+func initializeTransactionLog() error {
+	var err error
+
+	logger, err = NewFileTransactionLogger("transaction.log")
+	if err != nil {
+		return fmt.Errorf("failed to create event logger: %v", err)
+	}
+
+	events, errs := logger.ReadEvents()
+	e, ok := Event{}, true
+
+	for ok && err == nil {
+		select {
+		case err, ok = <-errs:
+		case e, ok = <-events:
+			switch e.EventType {
+			case EventDelete:
+				err = Delete(e.Key)
+			case EventPut:
+				err = Put(e.Key, e.Value)
+			}
+		}
+	}
+
+	logger.Run()
+
+	return err
 }
