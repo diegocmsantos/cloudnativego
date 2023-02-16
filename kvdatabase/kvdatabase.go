@@ -65,17 +65,17 @@ func Delete(key string) error {
 	return nil
 }
 
-var logger TransactionLogger
+var Logger TransactionLogger
 
-func initializeTransactionLog() error {
+func InitializeTransactionLog() error {
 	var err error
 
-	logger, err = NewFileTransactionLogger("transaction.log")
+	Logger, err = NewFileTransactionLogger("transaction.log")
 	if err != nil {
 		return fmt.Errorf("failed to create event logger: %v", err)
 	}
 
-	events, errs := logger.ReadEvents()
+	events, errs := Logger.ReadEvents()
 	e, ok := Event{}, true
 
 	for ok && err == nil {
@@ -91,7 +91,7 @@ func initializeTransactionLog() error {
 		}
 	}
 
-	logger.Run()
+	Logger.Run()
 
 	return err
 }

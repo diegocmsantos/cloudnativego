@@ -29,6 +29,7 @@ func keyValuePutHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	kvdatabase.Logger.WritePut(key, string(value))
 
 	w.WriteHeader(http.StatusCreated)
 }
@@ -63,11 +64,16 @@ func keyValueDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	kvdatabase.Logger.WriteDelete(key)
 
 	w.WriteHeader(http.StatusAccepted)
 }
 
 func main() {
+	err := kvdatabase.InitializeTransactionLog()
+	if err != nil {
+		log.Fatal(err)
+	}
 	r := mux.NewRouter()
 	r.HandleFunc("/v1/{key}", keyValuePutHandler).Methods(http.MethodPut)
 	r.HandleFunc("/v1/{key}", keyValueGetHandler).Methods(http.MethodGet)
