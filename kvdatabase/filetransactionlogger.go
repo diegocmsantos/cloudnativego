@@ -94,3 +94,7 @@ func (f *FileTransactionLogger) WriteDelete(key string) {
 func (f *FileTransactionLogger) Err() <-chan error {
 	return f.errors
 }
+
+func (f *FileTransactionLogger) Close() error {
+	return f.file.Close()
+}

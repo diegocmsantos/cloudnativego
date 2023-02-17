@@ -74,9 +74,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer kvdatabase.Logger.Close()
+
 	r := mux.NewRouter()
 	r.HandleFunc("/v1/{key}", keyValuePutHandler).Methods(http.MethodPut)
 	r.HandleFunc("/v1/{key}", keyValueGetHandler).Methods(http.MethodGet)
 	r.HandleFunc("/v1/{key}", keyValueDeleteHandler).Methods(http.MethodDelete)
-	log.Fatal(http.ListenAndServe(":8080", r))
+	// log.Fatal(http.ListenAndServe(":8080", r))
+	log.Fatal(http.ListenAndServeTLS(":8080", "cert.pem", "key.pem", r))
 }
